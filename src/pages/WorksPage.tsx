@@ -98,7 +98,6 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: ${colors.border};
   max-width: 1280px;
   margin: 0 auto;
   padding: ${spacing.xl} 2.5rem;

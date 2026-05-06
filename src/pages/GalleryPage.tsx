@@ -1,7 +1,7 @@
 import React, { useState, useMemo, Suspense, lazy, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { MOCK_ARTISTS } from '../data/mockData';
 import { ZONE_CONFIGS, ZONE_ORDER, ZoneId } from '../types/zone';
 import { ArtistData } from '../types/artist';
@@ -115,6 +115,47 @@ const BackBtn = styled(motion.button)`
   backdrop-filter: blur(6px);
 
   &:hover { color: ${colors.textPrimary}; border-color: ${colors.borderHover}; }
+`;
+
+const HomeButton = styled(Link)`
+  pointer-events: auto;
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(6,6,6,0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid ${colors.border};
+  color: ${colors.textTertiary};
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: ${colors.textPrimary};
+    border-color: ${colors.borderHover};
+    transform: translateY(-2px);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (max-width: 768px) {
+    bottom: 80px; /* Above bottom nav */
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 `;
 
 // ── Bottom zone nav ───────────────────────────────────────────
@@ -365,7 +406,7 @@ const GalleryPage: React.FC = () => {
 
       {/* ── Top bar ──────────────────────────────── */}
       <TopBar>
-        <Logo>KAISTID GRAD 2026</Logo>
+        <Logo>KAIST ID</Logo>
 
         <AnimatePresence mode="wait">
           {activeCfg ? (
@@ -385,7 +426,7 @@ const GalleryPage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <ZoneName $c={colors.textTertiary}>온라인 전시관 로비</ZoneName>
+              <ZoneName $c={colors.textTertiary}>Online Exhibition Hall Lobby</ZoneName>
             </ZoneHint>
           )}
         </AnimatePresence>
@@ -429,6 +470,19 @@ const GalleryPage: React.FC = () => {
           );
         })}
       </BottomNav>
+
+      {/* ── Home Button ─────────────────────────── */}
+      <HomeButton to="/" aria-label="Go to Home">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          strokeWidth={1.5} 
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+        </svg>
+      </HomeButton>
 
       {/* ── Artwork detail drawer ─────────────────── */}
       <AnimatePresence>
