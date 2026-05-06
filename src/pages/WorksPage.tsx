@@ -4,11 +4,11 @@ import Nav from '../components/common/Nav';
 import Footer from '../components/common/Footer';
 import { ToastProvider } from '../components/common';
 import WorkCard from '../components/works/WorkCard';
-import CategoryFilter from '../components/works/CategoryFilter';
 import { useArtists } from '../hooks/useArtists';
-import { ArtworkCategory } from '../types/artist';
+import { ZONE_CONFIGS, ZONE_ORDER, ZoneId } from '../types/zone';
 import { colors, fonts, spacing } from '../styles/tokens';
 
+// ── Styled ─────────────────────────────────────────────────────
 const PageWrap = styled.div`
   padding-top: 80px;
 `;
@@ -43,14 +43,55 @@ const Sub = styled.p`
   text-transform: uppercase;
 `;
 
-const FilterWrap = styled.div`
-  padding: ${spacing.xl} 2.5rem 0;
+const FilterSection = styled.div`
   max-width: 1280px;
   margin: 0 auto;
+  padding: ${spacing.xl} 2.5rem 0;
 
   @media (max-width: 768px) {
     padding: ${spacing.lg} 1.5rem 0;
   }
+`;
+
+const FilterLabel = styled.p`
+  font-family: ${fonts.mono};
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: ${colors.textTertiary};
+  text-transform: uppercase;
+  margin-bottom: 10px;
+`;
+
+const FilterBar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const FilterBtn = styled.button<{ $active: boolean; $color?: string }>`
+  font-family: ${fonts.mono};
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  ${({ $active, $color }) =>
+    $active
+      ? `
+    background: ${$color ? `${$color}20` : 'rgba(200,168,130,0.15)'};
+    border-color: ${$color ?? 'rgba(200,168,130,0.5)'};
+    color: ${$color ?? '#c8a882'};
+  `
+      : `
+    background: transparent;
+    border-color: ${colors.border};
+    color: ${colors.textTertiary};
+    &:hover { border-color: ${colors.borderHover}; color: ${colors.textSecondary}; }
+  `}
 `;
 
 const Grid = styled.div`
@@ -62,18 +103,9 @@ const Grid = styled.div`
   margin: 0 auto;
   padding: ${spacing.xl} 2.5rem;
 
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    padding: ${spacing.lg} 1.5rem;
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-    padding: ${spacing.md} 1.5rem;
-  }
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 768px) { padding: ${spacing.lg} 1.5rem; }
+  @media (max-width: 600px) { grid-template-columns: 1fr; padding: ${spacing.md} 1.5rem; }
 `;
 
 const EmptyMsg = styled.div`
@@ -85,13 +117,17 @@ const EmptyMsg = styled.div`
   grid-column: 1 / -1;
 `;
 
+// ── Component ─────────────────────────────────────────────────
+type FilterValue = 'all' | ZoneId;
+
 const WorksPage: React.FC = () => {
   const { data: artists = [], isLoading } = useArtists();
-  const [activeCategory, setActiveCategory] = useState<ArtworkCategory | 'all'>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterValue>('all');
 
-  const filtered = activeCategory === 'all'
-    ? artists
-    : artists.filter((a) => a.category === activeCategory);
+  const filtered =
+    activeFilter === 'all'
+      ? artists
+      : artists.filter((a) => a.zone === activeFilter);
 
   return (
     <ToastProvider>
@@ -104,15 +140,36 @@ const WorksPage: React.FC = () => {
           </PageHeaderInner>
         </PageHeader>
 
-        <FilterWrap>
-          <CategoryFilter selected={activeCategory} onChange={setActiveCategory} />
-        </FilterWrap>
+        <FilterSection>
+          <FilterLabel>Zone</FilterLabel>
+          <FilterBar>
+            <FilterBtn
+              $active={activeFilter === 'all'}
+              onClick={() => setActiveFilter('all')}
+            >
+              전체
+            </FilterBtn>
+            {ZONE_ORDER.map((id) => {
+              const cfg = ZONE_CONFIGS[id];
+              return (
+                <FilterBtn
+                  key={id}
+                  $active={activeFilter === id}
+                  $color={cfg.color}
+                  onClick={() => setActiveFilter(id)}
+                >
+                  {cfg.emoji} {cfg.labelKo}
+                </FilterBtn>
+              );
+            })}
+          </FilterBar>
+        </FilterSection>
 
         <Grid>
           {isLoading ? (
-            <EmptyMsg>작품을 불러오는 중...</EmptyMsg>
+            <EmptyMsg>작품을 불러오는 중…</EmptyMsg>
           ) : filtered.length === 0 ? (
-            <EmptyMsg>해당 카테고리에 작품이 없습니다</EmptyMsg>
+            <EmptyMsg>해당 Zone에 작품이 없습니다</EmptyMsg>
           ) : (
             filtered.map((artist, i) => (
               <WorkCard key={artist.id} artist={artist} index={i} />

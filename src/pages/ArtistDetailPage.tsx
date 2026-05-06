@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Nav from '../components/common/Nav';
 import Footer from '../components/common/Footer';
+import { StickyBoard } from '../components/stickyBoard';
+import { ZoneBadge } from '../components/zoneBadge';
 import { ToastProvider } from '../components/common';
 import {
   ArtistHero,
@@ -18,6 +20,44 @@ import { colors, fonts, spacing } from '../styles/tokens';
 
 const PageWrap = styled.div`
   padding-top: 72px;
+`;
+
+const StickyBoardSection = styled.section`
+  border-top: 1px solid ${colors.border};
+  padding: 60px 0;
+`;
+
+const StickyBoardInner = styled.div`
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+
+  @media (max-width: 768px) {
+    padding: 0 1.5rem;
+  }
+`;
+
+const StickyBoardHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+const StickyBoardTitle = styled.h3`
+  font-family: ${fonts.mono};
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: ${colors.textTertiary};
+  margin-bottom: 4px;
+`;
+
+const StickyBoardDesc = styled.p`
+  font-size: 13px;
+  color: ${colors.textSecondary};
 `;
 
 const NavRow = styled.div`
@@ -152,6 +192,18 @@ const ArtistDetailPage: React.FC = () => {
           <ProcessNote artist={artist} />
         )}
         <ArtistQA artistId={artist.id} questions={questions} />
+        <StickyBoardSection>
+          <StickyBoardInner>
+            <StickyBoardHeader>
+              <div>
+                <StickyBoardTitle>관람객 노트</StickyBoardTitle>
+                <StickyBoardDesc>이 작품을 보고 떠오른 생각을 포스트잇에 남겨보세요.</StickyBoardDesc>
+              </div>
+              <ZoneBadge zoneId={artist.zone} />
+            </StickyBoardHeader>
+            <StickyBoard artistId={artist.id} />
+          </StickyBoardInner>
+        </StickyBoardSection>
       </PageWrap>
       <Footer />
     </ToastProvider>

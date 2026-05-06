@@ -6,6 +6,9 @@ import WorkCard from '../works/WorkCard';
 import { Question } from '../../types/question';
 import { QUESTION_TYPE_LABELS } from '../../types/question';
 import { formatRelative } from '../../utils/formatters';
+import { ZONE_CONFIGS, ZONE_ORDER, ZoneId } from '../../types/zone';
+import { MOCK_ARTISTS } from '../../data/mockData';
+import { useZoneStore } from '../../store/zoneStore';
 
 // ── Hero Section ──────────────────────────────────────────────
 const revealY = keyframes`
@@ -54,19 +57,17 @@ export function HeroSection() {
         </HeroInfoRow>
 
         <HeroCTA style={{ animationDelay: '0.65s' }}>
-          <CTABtn $primary onClick={() => navigate('/works')}>
-            작품 보기 →
+          <CTABtn $primary onClick={() => navigate('/gallery')}>
+            🎟 3D 전시관 입장
+          </CTABtn>
+          <CTABtn onClick={() => navigate('/works')}>
+            작품 목록 →
           </CTABtn>
           <CTABtn onClick={() => navigate('/about')}>
             전시 정보
           </CTABtn>
         </HeroCTA>
       </HeroContent>
-
-      <ScrollHint>
-        <ScrollLine />
-        <ScrollLabel>scroll</ScrollLabel>
-      </ScrollHint>
     </HeroWrap>
   );
 }
@@ -221,33 +222,6 @@ const CTABtn = styled.button<{ $primary?: boolean }>`
     border: 1px solid ${colors.border};
     &:hover { border-color: ${colors.borderHover}; }
   `}
-`;
-
-const ScrollHint = styled.div`
-  position: absolute;
-  bottom: 2rem;
-  left: 2.5rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  @media (max-width: ${breakpoints.tablet}) {
-    display: none;
-  }
-`;
-
-const ScrollLine = styled.div`
-  width: 40px;
-  height: 1px;
-  background: ${colors.textTertiary};
-`;
-
-const ScrollLabel = styled.span`
-  font-family: ${fonts.mono};
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: ${colors.textTertiary};
 `;
 
 // ── Featured Works ──────────────────────────────────────────────
@@ -674,4 +648,329 @@ const QAEmpty = styled.p`
   text-align: center;
   border: 1px dashed ${colors.border};
   border-radius: 4px;
+`;
+
+// ── Zone Gates ────────────────────────────────────────────────
+const ZONE_LETTERS = ['A', 'B', 'C', 'D'];
+
+export function ZoneGates() {
+  const navigate = useNavigate();
+  const { visitedZones } = useZoneStore();
+
+  const handleEnter = (zoneId: ZoneId) => {
+    navigate(`/gallery?zone=${zoneId}`);
+  };
+
+  return (
+    <ZGWrap>
+      <ZGInner>
+        <ZGHeader>
+          <ZGEyebrow>ONLINE EXHIBITION · 2026</ZGEyebrow>
+          <ZGTitle>온라인 전시관</ZGTitle>
+          <ZGSub>
+            4개의 존을 모두 탐험하면 오프라인 초대장이 발급됩니다
+          </ZGSub>
+          <ProgressRow>
+            {ZONE_ORDER.map((id) => {
+              const cfg = ZONE_CONFIGS[id];
+              const done = visitedZones.has(id);
+              return (
+                <ProgressDot key={id} $color={cfg.color} $done={done}>
+                  {done ? '✓' : ''}
+                </ProgressDot>
+              );
+            })}
+            <ProgressLabel>
+              {visitedZones.size} / {ZONE_ORDER.length} 존 방문
+            </ProgressLabel>
+          </ProgressRow>
+        </ZGHeader>
+
+        <ZGGrid>
+          {ZONE_ORDER.map((id, i) => {
+            const cfg = ZONE_CONFIGS[id];
+            const works = MOCK_ARTISTS.filter((a) => a.zone === id);
+            const visited = visitedZones.has(id);
+
+            return (
+              <ZGCard
+                key={id}
+                $color={cfg.color}
+                $visited={visited}
+                onClick={() => handleEnter(id)}
+              >
+                {/* Top accent bar */}
+                <ZGBar $color={cfg.color} />
+
+                <ZGCardInner>
+                  <ZGMeta>
+                    <ZGLetter $color={cfg.color}>Zone {ZONE_LETTERS[i]}</ZGLetter>
+                    {visited && <ZGVisitedTag $color={cfg.color}>방문 완료</ZGVisitedTag>}
+                  </ZGMeta>
+
+                  <ZGEmoji>{cfg.emoji}</ZGEmoji>
+                  <ZGZoneName $color={cfg.color}>{cfg.labelKo}</ZGZoneName>
+                  <ZGTagline>"{cfg.tagline}"</ZGTagline>
+                  <ZGDesc>{cfg.description}</ZGDesc>
+
+                  <ZGWorkList>
+                    {works.slice(0, 3).map((w) => (
+                      <ZGWorkItem key={w.id}>
+                        <ZGWorkDot $color={cfg.color} />
+                        {w.work.titleKo}
+                      </ZGWorkItem>
+                    ))}
+                    {works.length > 3 && (
+                      <ZGWorkItem>
+                        <ZGWorkDot $color={cfg.color} />
+                        외 {works.length - 3}점
+                      </ZGWorkItem>
+                    )}
+                  </ZGWorkList>
+
+                  <ZGEnterBtn $color={cfg.color} $visited={visited}>
+                    {visited ? '재방문하기' : '전시관 입장'} →
+                  </ZGEnterBtn>
+                </ZGCardInner>
+              </ZGCard>
+            );
+          })}
+        </ZGGrid>
+      </ZGInner>
+    </ZGWrap>
+  );
+}
+
+// ── ZoneGates Styled ──────────────────────────────────────────
+const ZGWrap = styled.section`
+  border-top: 1px solid ${colors.border};
+  padding: 6rem 0 5rem;
+  background: ${colors.black};
+`;
+
+const ZGInner = styled.div`
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+
+  @media (max-width: 768px) {
+    padding: 0 1.5rem;
+  }
+`;
+
+const ZGHeader = styled.div`
+  margin-bottom: 3rem;
+`;
+
+const ZGEyebrow = styled.p`
+  font-family: ${fonts.mono};
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: ${colors.textTertiary};
+  margin-bottom: 12px;
+`;
+
+const ZGTitle = styled.h2`
+  font-family: ${fonts.display};
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 300;
+  color: ${colors.textPrimary};
+  margin-bottom: 12px;
+`;
+
+const ZGSub = styled.p`
+  font-size: 14px;
+  color: ${colors.textSecondary};
+  margin-bottom: 20px;
+  line-height: 1.7;
+`;
+
+const ProgressRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ProgressDot = styled.div<{ $color: string; $done: boolean }>`
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid ${({ $color, $done }) => ($done ? $color : 'rgba(232,228,220,0.15)')};
+  background: ${({ $color, $done }) => ($done ? `${$color}22` : 'transparent')};
+  color: ${({ $color }) => $color};
+  font-family: ${fonts.mono};
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+`;
+
+const ProgressLabel = styled.span`
+  font-family: ${fonts.mono};
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: ${colors.textTertiary};
+  margin-left: 4px;
+`;
+
+const ZGGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: ${colors.border};
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ZGCard = styled.article<{ $color: string; $visited: boolean }>`
+  background: ${colors.surface};
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.25s;
+  display: flex;
+  flex-direction: column;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${({ $color }) => $color};
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: ${colors.surfaceHover};
+  }
+
+  &:hover::after {
+    opacity: 0.04;
+  }
+`;
+
+const ZGBar = styled.div<{ $color: string }>`
+  height: 3px;
+  background: ${({ $color }) => $color};
+  width: 100%;
+  flex-shrink: 0;
+`;
+
+const ZGCardInner = styled.div`
+  padding: 2rem 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
+const ZGMeta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+`;
+
+const ZGLetter = styled.span<{ $color: string }>`
+  font-family: ${fonts.mono};
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: ${({ $color }) => $color};
+  text-transform: uppercase;
+`;
+
+const ZGVisitedTag = styled.span<{ $color: string }>`
+  font-family: ${fonts.mono};
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: ${({ $color }) => $color};
+  background: ${({ $color }) => $color}18;
+  border: 1px solid ${({ $color }) => $color}44;
+  border-radius: 10px;
+  padding: 2px 8px;
+`;
+
+const ZGEmoji = styled.div`
+  font-size: 36px;
+  margin-bottom: 12px;
+  line-height: 1;
+`;
+
+const ZGZoneName = styled.h3<{ $color: string }>`
+  font-family: ${fonts.display};
+  font-size: 22px;
+  font-weight: 300;
+  color: ${colors.textPrimary};
+  margin-bottom: 6px;
+  line-height: 1.2;
+`;
+
+const ZGTagline = styled.p`
+  font-family: ${fonts.display};
+  font-size: 13px;
+  font-style: italic;
+  color: ${colors.textTertiary};
+  margin-bottom: 12px;
+  line-height: 1.5;
+`;
+
+const ZGDesc = styled.p`
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+  border-top: 1px solid ${colors.border};
+  padding-top: 1rem;
+`;
+
+const ZGWorkList = styled.ul`
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+  flex: 1;
+`;
+
+const ZGWorkItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  line-height: 1.4;
+`;
+
+const ZGWorkDot = styled.span<{ $color: string }>`
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+  flex-shrink: 0;
+  opacity: 0.7;
+`;
+
+const ZGEnterBtn = styled.div<{ $color: string; $visited: boolean }>`
+  font-family: ${fonts.mono};
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: ${({ $color }) => $color};
+  border: 1px solid ${({ $color }) => $color}55;
+  border-radius: 3px;
+  padding: 10px 16px;
+  text-align: center;
+  transition: background 0.2s, border-color 0.2s;
+  margin-top: auto;
+
+  ${ZGCard}:hover & {
+    background: ${({ $color }) => $color}18;
+    border-color: ${({ $color }) => $color}99;
+  }
 `;

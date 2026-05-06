@@ -1,3 +1,6 @@
+import { ZoneId } from './zone';
+export type { ZoneId };
+
 export type ArtworkCategory =
   | 'ux-interaction'
   | 'space-environment'
@@ -18,6 +21,7 @@ export const CATEGORY_LABELS: Record<ArtworkCategory, string> = {
 export interface ArtistData {
   id: string;
   order: number;
+  zone: ZoneId;
   name: { ko: string; en: string };
   studentId: string;
   category: ArtworkCategory;
